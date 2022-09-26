@@ -3,6 +3,7 @@ const TIMEOUT = 5000;
 const HttpStatus = {
     OK: 200,
     CREATED: 201,
+    NOCONTENT: 204,
     BADREQUEST: 400,
     NOTFOUND: 404
 }
@@ -137,8 +138,8 @@ async function identifyMember(photo) {
                 member = json.member;
                 state = State.CONFIRM;
                 break;
-            case HttpStatus.NOTFOUND: //Face detected, but not recognized (ie. member not found)
-                console.log('api.identify: NOTFOUND')
+            case HttpStatus.NOCONTENT: //Face detected, but not recognized (ie. member not found)
+                console.log('api.identify: NOCONTENT')
                 console.log(response);
                 json = await response.json();
                 photoId = json.photoId;
@@ -160,12 +161,12 @@ async function identifyMember(photo) {
     }
 }
 
-async function registerManual() {
+function registerManual() {
     try {
         id = parseInt(document.getElementById('registerId').innerText);
     }
-    catch (err) {
-        console.log(err);
+    catch (error) {
+        console.log(error);
     }
     member = (id <= 999999) ? { 'id': id } : { 'altdId': id };
     register();
@@ -175,16 +176,15 @@ async function register() {
     try {
         const request = { method: 'POST', body: JSON.stringify({ member: member, photoId: photoId }) };
         const response = await fetch(`${API}/register`, request, TIMEOUT);
-        const json = await response.json();
         switch (response.status) {
             case HttpStatus.CREATED: //Attendance recorded
                 setupPage(State.WELCOME);
                 break;
-            case HttpStatus.NOTFOUND: //Member number unknown
+            case HttpStatus.NOCONTENT: //Member number unknown
                 break;
         }
     }
-    catch (err) {
-        console.log(err);
+    catch (error) {
+        console.log(error);
     }
 }
